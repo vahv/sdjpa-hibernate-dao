@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.*;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -19,6 +20,48 @@ public class AuthorDaoImpl implements AuthorDao {
 
     public AuthorDaoImpl(EntityManagerFactory emf) {
         this.emf = emf;
+    }
+
+    @Override
+    public Author findAuthorByNameNative(String firstName, String lastName) {
+        EntityManager em = emf.createEntityManager();
+        try {
+            Query query = em.createNativeQuery(
+                    "SELECT * FROM author a where a.first_name = ? AND a.last_name = ?",
+                    Author.class);
+            query.setParameter(1, firstName);
+            query.setParameter(2, lastName);
+            return (Author) query.getSingleResult();
+        } finally {
+            em.close();
+        }
+    }
+
+    @Override
+    public Author findAuthorByNameCriteria(String firstName, String lastName) {
+        EntityManager em = getEntityManager();
+        try {
+            CriteriaBuilder criteriaBuilder = em.getCriteriaBuilder();
+            CriteriaQuery<Author> criteriaQuery = criteriaBuilder.createQuery(Author.class);
+
+            Root<Author> root = criteriaQuery.from(Author.class);
+
+            ParameterExpression<String> firstNameParameter = criteriaBuilder.parameter(String.class);
+            ParameterExpression<String> lastNameParameter = criteriaBuilder.parameter(String.class);
+
+            Predicate firstNamePredicate = criteriaBuilder.equal(root.get("firstName"), firstNameParameter);
+            Predicate lastNamePredicate = criteriaBuilder.equal(root.get("lastName"), lastNameParameter);
+
+            criteriaQuery.select(root).where(criteriaBuilder.and(firstNamePredicate, lastNamePredicate));
+
+            TypedQuery<Author> typedQuery = em.createQuery(criteriaQuery);
+            typedQuery.setParameter(firstNameParameter, firstName);
+            typedQuery.setParameter(lastNameParameter, lastName);
+
+            return typedQuery.getSingleResult();
+        } finally {
+            em.close();
+        }
     }
 
     @Override

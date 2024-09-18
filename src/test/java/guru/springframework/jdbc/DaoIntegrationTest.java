@@ -41,6 +41,14 @@ public class DaoIntegrationTest {
     }
 
     @Test
+    void testGetAuthorByNameCriteria() {
+        Author author = authorDao.findAuthorByNameCriteria("Craig", "Walls");
+        assertThat(author).isNotNull();
+        assertThat(author.getFirstName()).isEqualTo("Craig");
+        assertThat(author.getLastName()).isEqualTo("Walls");
+    }
+
+    @Test
     void testFindAllAuthors() {
         List<Author> authors = authorDao.findAll();
 
@@ -189,6 +197,15 @@ public class DaoIntegrationTest {
         assertThat(fetched).isNotNull();
 
         bookDao.deleteBookById(saved.getId());
+    }
+
+    @Test
+    void testGetAuthorByNameNative() {
+        Author author = authorDao.findAuthorByNameNative("Craig", "Walls");
+
+        assertThat(author).isNotNull();
+        assertThat(author.getFirstName()).isEqualTo("Craig");
+        assertThat(author.getLastName()).isEqualTo("Walls");
     }
 
     @Test
