@@ -1,11 +1,13 @@
 package guru.springframework.jdbc.dao;
 
 import guru.springframework.jdbc.domain.Author;
-import org.springframework.stereotype.Component;
-
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityManagerFactory;
+import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
+import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Created by jt on 8/28/21.
@@ -17,6 +19,19 @@ public class AuthorDaoImpl implements AuthorDao {
 
     public AuthorDaoImpl(EntityManagerFactory emf) {
         this.emf = emf;
+    }
+
+    @Override
+    public List<Author> listAuthorByLastNameLike(String lastName) {
+        EntityManager em = getEntityManager();
+        try {
+            Query theQuery = em.createQuery("select a from Author a where a.lastName like :last_name");
+            theQuery.setParameter("last_name", "%" + lastName + "%");
+            List<Author> results = theQuery.getResultList();
+            return results;
+        } finally {
+            em.close();
+        }
     }
 
     @Override
